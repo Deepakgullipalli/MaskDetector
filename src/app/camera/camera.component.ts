@@ -1,6 +1,7 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { Subject,Observable } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { WebcamImage, WebcamInitError, WebcamUtil } from 'ngx-webcam';
+import { interval, Subscription } from 'rxjs';
 @Component({
   selector: 'app-camera',
   templateUrl: './camera.component.html',
@@ -23,6 +24,9 @@ export class CameraComponent implements OnInit {
   private trigger: Subject<void> = new Subject<void>();
   // switch to next / previous / specific webcam; true/false: forward/backwards, string: deviceId
   private nextWebcam: Subject<boolean | string> = new Subject<boolean | string>();
+
+  subscription: Subscription;
+
   public ngOnInit(): void {
     WebcamUtil.getAvailableVideoInputs()
       .then((mediaDevices: MediaDeviceInfo[]) => {
@@ -31,6 +35,9 @@ export class CameraComponent implements OnInit {
   }
   public triggerSnapshot(): void {
     this.trigger.next();
+    const source = interval(10000);
+    this.subscription = source.subscribe(val => this.triggerSnapshot());
+
   }
   public toggleWebcam(): void {
     this.showWebcam = !this.showWebcam;
